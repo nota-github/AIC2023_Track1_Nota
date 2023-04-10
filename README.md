@@ -1,2 +1,2 @@
 # AIC2023_Track1_Nota
-Repository for 2023 AI City Challenge (Track1: Multi-Camera People Tracking)
+The code will be updated within April 21st, 2023 (18:00 PT)
