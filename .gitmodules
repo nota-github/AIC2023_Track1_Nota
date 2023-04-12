@@ -1,6 +1,3 @@
-[submodule "detector/yolov8"]
-	path = detector/yolov8
-	url = https://github.com/ultralytics/ultralytics.git
 [submodule "reid/fastreid"]
 	path = reid/fastreid
 	url = https://github.com/JDAI-CV/fast-reid.git
