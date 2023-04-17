@@ -1,15 +1,10 @@
-# from detection_coco.models.model import NPNet
-# from detection_v5.models.model import NPNet
-from detection_eva.model import EVA
-# from reids.fastreid.models.model import ReID
-from reids.ensemble.model import ReIDEnsemble
+from ultralytics import YOLO
 from trackers.botsort.bot_sort import BoTSORT
 
 from trackers.multicam_tracker.cluster_track import MCTracker
 from trackers.multicam_tracker.clustering import Clustering, ID_Distributor
 
-from mmpose.apis import init_pose_model
-
+from mmpose.apis import init_model
 from perspective_transform.model import PerspectiveTransform
 from perspective_transform.calibration import calibration_position
 from tools.utils import (_COLORS, get_reader_writer, finalize_cams, write_vids, write_results_testset, 
@@ -20,37 +15,24 @@ import os
 import time
 import numpy as np
 import argparse
+import pdb
 
-
-def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids):
+def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids, scene):
     # assert len(sources) == len(result_paths[0]), 'length of sources and result_paths is different'
     # detection model initilaize
-    # NPNet.initialize()
-    # detection = NPNet()
-    # detection.conf_thres = conf_thres
-    # detection.iou_thres = iou_thres
-    # classes = detection.classes
-    detection = EVA()
-    detection.initialize('detection_eva/eva_s001_results.json')
-    classes = detection.classes
-    
-    # reid model initilaize
-    # ReID.initialize(max_batch_size=args['max_batch_size'])
-    # reid = ReID()
-    reid = ReIDEnsemble()
-    reid.initialize(max_batch_size=args['max_batch_size'])
-
+    detection = YOLO('yolov8x6.pt')
+        
     # pose estimation initialize
-    config_file = './configs/body/2d_kpt_sview_rgb_img/topdown_heatmap/crowdpose/hrnet_w32_crowdpose_256x192.py'
+    config_file = './configs/pose/body_2d_keypoint/topdown_heatmap/crowdpose/td-hm_hrnet-w32_8xb64-210e_crowdpose-256x192.py'
     checkpoint_file = 'https://download.openmmlab.com/mmpose/top_down/hrnet/hrnet_w32_crowdpose_256x192-960be101_20201227.pth'
-    pose = init_pose_model(config_file, checkpoint_file, device='cuda:0')
+    pose = init_model(config_file, checkpoint_file, device='cuda:0')
 
     # trackers initialize
-    # trackers = [BoTSORT(track_buffer=args['track_buffer'], max_batch_size=args['max_batch_size']) for i in range(len(sources))]
     trackers = []
     for i in range(len(sources)):
-        trackers.append(BoTSORT(track_buffer=args['track_buffer'], max_batch_size=args['max_batch_size'], 
-                            appearance_thresh=args['sct_appearance_thresh'], euc_thresh=args['sct_euclidean_thresh']))
+        # trackers.append(BoTSORT(track_buffer=args['track_buffer'], max_batch_size=args['max_batch_size'], 
+        trackers.append(BoTSORT(track_buffer=args['track_buffer'], 
+                            appearance_thresh=args['sct_appearance_thresh'], euc_thresh=args['sct_euclidean_thresh'], real_data=args['real_data']))
 
     # perspective transform initialize
     calibrations = calibration_position[perspective]
@@ -77,9 +59,6 @@ def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids
     final_results_lists = {}
 
     while True:
-        if cur_frame == 25000:  # SKIP
-            # final_results_lists = {_: results for _, results in enumerate(results_lists)}
-            break
         imgs = []
         start = time.time()
 
@@ -94,17 +73,9 @@ def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids
                     break
                 imgs.append(np.zeros((1080, 1920, 3), np.uint8))
                 continue
-            # if  180 < cur_frame and cur_frame < 4700 or (5300 < cur_frame and cur_frame < 6000):  # SKIP
-            # if  180 < cur_frame and cur_frame < 4700 or (5300 < cur_frame and cur_frame < 6000):  # SKIP
-            if cur_frame < 20000:
-                img_paths.pop(0)
-                continue
-            img_path = img_paths.pop(0)
-            img = cv2.imread(img_path)
-            # img = cv2.imread(img_paths.pop(0))
-            dets = detection.run(img_path)  # run detection model
-            # dets = detection.run(img)  # run detection model 
-            online_targets = tracker.update(np.array(dets), img, reid, pose)  # run tracker
+            img = cv2.imread(img_paths.pop(0))
+            dets = detection(img, conf=conf_thres, iou=iou_thres, classes=0)[0].boxes.data[:, :5].cpu().numpy()  # run detection model 
+            online_targets = tracker.update(dets, img, pose)  # run tracker
             perspective_transform.run(tracker)  # run perspective transform
 
             # assign global_id to each track for multi-camera tracking
@@ -114,10 +85,8 @@ def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids
         if stop: break
         
         cur_frame += 1
-        # if 180 < cur_frame and cur_frame < 4700 or (5300 < cur_frame and cur_frame < 6000): continue  # SKIP
-
         # second, run multi-camera tracker using above trackers results
-        groups = clustering.update(trackers, cur_frame)
+        groups = clustering.update(trackers, cur_frame, scene)
         mc_tracker.update(trackers, groups)
         latency = time.time() - start
 
@@ -133,25 +102,20 @@ def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids
     
     finalize_cams(src_handlers)
     map_writer.release()
-    # third, postprocess on final results
-    # mc_tracker.postprocess(results_lists)  # todo
 
     # save results txt
     results_lists = list(final_results_lists.values())
     write_results_testset(results_lists, result_paths)
 
     # NPNet.finalize()
-    # ReID.finalize()
-    reid.finalize()
     print('Done')
-
 
 if __name__ == '__main__':
     args = {
         'max_batch_size' : 16,  # maximum input batch size of reid model
         'track_buffer' : 150,  # the frames for keep lost tracks
         'with_reid' : True,  # whether to use reid model's out feature map at first association
-
+        'real_data' : True,
         'sct_appearance_thresh' : 0.4,  # threshold of appearance feature cosine distance when do single-cam tracking
         'sct_euclidean_thresh' : 0.1,  # threshold of euclidean distance when do single-cam tracking
 
@@ -168,4 +132,4 @@ if __name__ == '__main__':
         'write_vid' : True,  # write result to video
         }
 
-    run(args=args, conf_thres=0.1, iou_thres=0.45, sources=sources['S001'], result_paths=result_paths['S001'], perspective='S001', cam_ids=cam_ids['S001'])
+    run(args=args, conf_thres=0.1, iou_thres=0.45, sources=sources['S001'], result_paths=result_paths['S001'], perspective='S001', cam_ids=cam_ids['S001'], scene='S001')

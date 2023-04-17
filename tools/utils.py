@@ -4,7 +4,7 @@ import cv2
 import os
 import pickle
 import json
-from mmpose.apis import vis_pose_result
+
 import pdb
 
 _COLORS = np.array(
@@ -95,100 +95,100 @@ _COLORS = np.array(
 sources = {
         # Validation
         'S005': [
-                './Frames/validation/S005/c025/',
-                './Frames/validation/S005/c026/',
-                './Frames/validation/S005/c027/',
-                './Frames/validation/S005/c028/',
-                './Frames/validation/S005/c029/',
+                '/workspace/data/frames/validation/S005/c025/',
+                '/workspace/data/frames/validation/S005/c026/',
+                '/workspace/data/frames/validation/S005/c027/',
+                '/workspace/data/frames/validation/S005/c028/',
+                '/workspace/data/frames/validation/S005/c029/',
                 ],
         'S008': [
-                './Frames/validation/S008/c041/',
-                './Frames/validation/S008/c042/',
-                './Frames/validation/S008/c043/',
-                './Frames/validation/S008/c044/',
-                './Frames/validation/S008/c045/',
-                './Frames/validation/S008/c046/',
+                '/workspace/data/frames/validation/S008/c041/',
+                '/workspace/data/frames/validation/S008/c042/',
+                '/workspace/data/frames/validation/S008/c043/',
+                '/workspace/data/frames/validation/S008/c044/',
+                '/workspace/data/frames/validation/S008/c045/',
+                '/workspace/data/frames/validation/S008/c046/',
                 ],
         'S013': [
-                './Frames/validation/S013/c071/',
-                './Frames/validation/S013/c072/',
-                './Frames/validation/S013/c073/',
-                './Frames/validation/S013/c074/',
-                './Frames/validation/S013/c075/',
+                '/workspace/data/frames/validation/S013/c071/',
+                '/workspace/data/frames/validation/S013/c072/',
+                '/workspace/data/frames/validation/S013/c073/',
+                '/workspace/data/frames/validation/S013/c074/',
+                '/workspace/data/frames/validation/S013/c075/',
                 ],
         'S017': [
-                './Frames/validation/S017/c094/',
-                './Frames/validation/S017/c095/',
-                './Frames/validation/S017/c096/',
-                './Frames/validation/S017/c097/',
-                './Frames/validation/S017/c098/',
-                './Frames/validation/S017/c099/',
+                '/workspace/data/frames/validation/S017/c094/',
+                '/workspace/data/frames/validation/S017/c095/',
+                '/workspace/data/frames/validation/S017/c096/',
+                '/workspace/data/frames/validation/S017/c097/',
+                '/workspace/data/frames/validation/S017/c098/',
+                '/workspace/data/frames/validation/S017/c099/',
                 ],
         'S020': [
-                './Frames/validation/S020/c112/',
-                './Frames/validation/S020/c113/',
-                './Frames/validation/S020/c114/',
-                './Frames/validation/S020/c115/',
-                './Frames/validation/S020/c116/',
-                './Frames/validation/S020/c117/',
+                '/workspace/data/frames/validation/S020/c112/',
+                '/workspace/data/frames/validation/S020/c113/',
+                '/workspace/data/frames/validation/S020/c114/',
+                '/workspace/data/frames/validation/S020/c115/',
+                '/workspace/data/frames/validation/S020/c116/',
+                '/workspace/data/frames/validation/S020/c117/',
                 ],
         # Test
         'S001': [
-                './Frames/test/S001/c001/',
-                './Frames/test/S001/c002/',
-                './Frames/test/S001/c003/',
-                './Frames/test/S001/c004/',
-                './Frames/test/S001/c005/',
-                './Frames/test/S001/c006/',
-                './Frames/test/S001/c007/',
+                '/workspace/data/frames/test/S001/c001/',
+                '/workspace/data/frames/test/S001/c002/',
+                '/workspace/data/frames/test/S001/c003/',
+                '/workspace/data/frames/test/S001/c004/',
+                '/workspace/data/frames/test/S001/c005/',
+                '/workspace/data/frames/test/S001/c006/',
+                '/workspace/data/frames/test/S001/c007/',
                 ],
         'S003': [
-                './Frames/test/S003/c014/',
-                './Frames/test/S003/c015/',
-                './Frames/test/S003/c016/',
-                './Frames/test/S003/c017/',
-                './Frames/test/S003/c018/',
-                './Frames/test/S003/c019/',
+                '/workspace/data/frames/test/S003/c014/',
+                '/workspace/data/frames/test/S003/c015/',
+                '/workspace/data/frames/test/S003/c016/',
+                '/workspace/data/frames/test/S003/c017/',
+                '/workspace/data/frames/test/S003/c018/',
+                '/workspace/data/frames/test/S003/c019/',
                 ],
         'S009': [
-                './Frames/test/S009/c047/',
-                './Frames/test/S009/c048/',
-                './Frames/test/S009/c049/',
-                './Frames/test/S009/c050/',
-                './Frames/test/S009/c051/',
-                './Frames/test/S009/c052/',
+                '/workspace/data/frames/test/S009/c047/',
+                '/workspace/data/frames/test/S009/c048/',
+                '/workspace/data/frames/test/S009/c049/',
+                '/workspace/data/frames/test/S009/c050/',
+                '/workspace/data/frames/test/S009/c051/',
+                '/workspace/data/frames/test/S009/c052/',
                 ],
         'S014': [
-                './Frames/test/S014/c076/',
-                './Frames/test/S014/c077/',
-                './Frames/test/S014/c078/',
-                './Frames/test/S014/c079/',
-                './Frames/test/S014/c080/',
-                './Frames/test/S014/c081/',
+                '/workspace/data/frames/test/S014/c076/',
+                '/workspace/data/frames/test/S014/c077/',
+                '/workspace/data/frames/test/S014/c078/',
+                '/workspace/data/frames/test/S014/c079/',
+                '/workspace/data/frames/test/S014/c080/',
+                '/workspace/data/frames/test/S014/c081/',
                 ],
         'S018': [
-                './Frames/test/S018/c100/',
-                './Frames/test/S018/c101/',
-                './Frames/test/S018/c102/',
-                './Frames/test/S018/c103/',
-                './Frames/test/S018/c104/',
-                './Frames/test/S018/c105/',
+                '/workspace/data/frames/test/S018/c100/',
+                '/workspace/data/frames/test/S018/c101/',
+                '/workspace/data/frames/test/S018/c102/',
+                '/workspace/data/frames/test/S018/c103/',
+                '/workspace/data/frames/test/S018/c104/',
+                '/workspace/data/frames/test/S018/c105/',
                 ],
         'S021': [
-                './Frames/test/S021/c118/',
-                './Frames/test/S021/c119/',
-                './Frames/test/S021/c120/',
-                './Frames/test/S021/c121/',
-                './Frames/test/S021/c122/',
-                './Frames/test/S021/c123/',
+                '/workspace/data/frames/test/S021/c118/',
+                '/workspace/data/frames/test/S021/c119/',
+                '/workspace/data/frames/test/S021/c120/',
+                '/workspace/data/frames/test/S021/c121/',
+                '/workspace/data/frames/test/S021/c122/',
+                '/workspace/data/frames/test/S021/c123/',
                 ],
         'S022': [
-                './Frames/test/S022/c124/',
-                './Frames/test/S022/c125/',
-                './Frames/test/S022/c126/',
-                './Frames/test/S022/c127/',
-                './Frames/test/S022/c128/',
-                './Frames/test/S022/c129/',
+                '/workspace/data/frames/test/S022/c124/',
+                '/workspace/data/frames/test/S022/c125/',
+                '/workspace/data/frames/test/S022/c126/',
+                '/workspace/data/frames/test/S022/c127/',
+                '/workspace/data/frames/test/S022/c128/',
+                '/workspace/data/frames/test/S022/c129/',
                 ],
         }
 
@@ -246,64 +246,64 @@ map_infos = {
     # Validation
     "S005": {
         "size" : (1965,1077),
-        "source" : "./Frames/validation/S005/map.png",
+        "source" : "/workspace/data/frames/validation/S005/map.png",
         "savedir" : "./output_videos/mapS005.mp4"
     },
     "S008": {
         "size" : (1534,1398),
-        "source" : "./Frames/validation/S008/map.png",
+        "source" : "/workspace/data/frames/validation/S008/map.png",
         "savedir" : "./output_videos/mapS008.mp4"
     },
     "S013": {
         "size" : (1889,1322),
-        "source" : "./Frames/validation/S013/map.png",
+        "source" : "/workspace/data/frames/validation/S013/map.png",
         "savedir" : "./output_videos/mapS013.mp4"
     },
     "S017": {
         "size" : (1053,765),
-        "source" : "./Frames/validation/S017/map.png",
+        "source" : "/workspace/data/frames/validation/S017/map.png",
         "savedir" : "./output_videos/mapS017.mp4"
     },
     "S020": {
         "size" : (1270,1034),
-        "source" : "./Frames/validation/S020/map.png",
+        "source" : "/workspace/data/frames/validation/S020/map.png",
         "savedir" : "./output_videos/mapS020.mp4"
     },
     # Test
     "S001": {
         # "size" : (1591,896),
         "size" : (1591,1078),
-        "source" : "./Frames/test/S001/map.png",
+        "source" : "/workspace/data/frames/test/S001/map.png",
         "savedir" : "./output_videos/mapS001.mp4"
     },
     "S003": {
         "size" : (1777,784),
-        "source" : "./Frames/test/S003/map.png",
+        "source" : "/workspace/data/frames/test/S003/map.png",
         "savedir" : "./output_videos/mapS003.mp4"
     },
     "S009": {
         "size" : (1534,1398),
-        "source" : "./Frames/test/S009/map.png",
+        "source" : "/workspace/data/frames/test/S009/map.png",
         "savedir" : "./output_videos/mapS009.mp4"
     },
     "S014": {
         "size" : (1889,1322),
-        "source" : "./Frames/test/S014/map.png",
+        "source" : "/workspace/data/frames/test/S014/map.png",
         "savedir" : "./output_videos/mapS014.mp4"
     },
     "S018": {
         "size" : (969,1036),
-        "source" : "./Frames/test/S018/map.png",
+        "source" : "/workspace/data/frames/test/S018/map.png",
         "savedir" : "./output_videos/mapS018.mp4"
     },
     "S021": {
         "size" : (1898,889),
-        "source" : "./Frames/test/S021/map.png",
+        "source" : "/workspace/data/frames/test/S021/map.png",
         "savedir" : "./output_videos/mapS021.mp4"
     },
     "S022": {
         "size" : (1903,905),
-        "source" : "./Frames/test/S022/map.png",
+        "source" : "/workspace/data/frames/test/S022/map.png",
         "savedir" : "./output_videos/mapS022.mp4"
     },
     }
@@ -506,8 +506,7 @@ def visualize(dets, img, latency, colors, pose, pose_result, cur_frame):
         cv2.rectangle(img, (0, 0), (txt_size[0], int(1.5*txt_size[1])), (0,0,0), -1)
         cv2.putText(img, text, (0,txt_size[1]), font, 0.4*m, (255,255,255), thickness=1*m)
         return img
-    img = vis_pose_result(pose, img, pose_result, kpt_score_thr=0.3)
-    
+            
     for obj in dets:
         score = obj[4]
         track_id = int(obj[5])
@@ -569,7 +568,6 @@ def visualize_map(loc, img, cam_id, track_id, colors, len_feats, cur_frame):
     text = f'{cam_id}/{track_id}/{len_feats}'
     txt_size = cv2.getTextSize(text, font, 0.4*m, 1*m)[0]
     color = (colors[track_id%80] * 255).astype(np.uint8).tolist()
-    # color = (colors[cam_id%80] * 255).astype(np.uint8).tolist()
     cv2.line(img, loc, loc, color, m)
     cv2.putText(img, text, (loc[0], loc[1] + txt_size[1]), font, 0.4*m, color, thickness=1*m)
 

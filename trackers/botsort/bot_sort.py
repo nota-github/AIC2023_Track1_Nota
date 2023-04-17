@@ -1,12 +1,15 @@
 import cv2
 import numpy as np
 from collections import deque
-from mmpose.apis import inference_top_down_pose_model
+from mmpose.apis import inference_topdown
 
 from . import matching
 # from .gmc import GMC
+from .fast_reid_interfece import FastReIDInterface
+
 from .basetrack import BaseTrack, TrackState
 from .kalman_filter import KalmanFilter
+import pdb
 
 class ID_Assigner:
     def __init__(self, init_id=0):
@@ -224,10 +227,12 @@ class STrack(BaseTrack):
 
 
 class BoTSORT(object):
+    # def __init__(self, track_high_thresh=0.6, track_low_thresh=0.1, new_track_thresh=0.7, track_buffer=30, 
+    #             match_thresh=0.8, with_reid=True, proximity_thresh=0.5, appearance_thresh=0.4, euc_thresh=0.1, 
+    #             fuse_score=True, frame_rate=30, max_batch_size=8, map_len=None, real_data=True):
     def __init__(self, track_high_thresh=0.6, track_low_thresh=0.1, new_track_thresh=0.7, track_buffer=30, 
                 match_thresh=0.8, with_reid=True, proximity_thresh=0.5, appearance_thresh=0.4, euc_thresh=0.1, 
-                fuse_score=True, frame_rate=30, max_batch_size=8, map_len=None):
-
+                fuse_score=True, frame_rate=30,  map_len=None, real_data=True):
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
@@ -249,10 +254,11 @@ class BoTSORT(object):
 
         # ReID module
         self.with_reid = with_reid
+        self.real_data = real_data
         self.proximity_thresh = proximity_thresh
         self.appearance_thresh = appearance_thresh
         self.euc_thresh = euc_thresh
-        self.max_batch_size = max_batch_size
+        # self.max_batch_size = max_batch_size
 
         self.max_len = map_len if map_len else np.sqrt(1920**2 + 1080**2)
         # print(f'max_len: {self.max_len}')
@@ -260,12 +266,19 @@ class BoTSORT(object):
         self.id_assigner = ID_Assigner()
         # self.id_assigner = None
 
-        # if args.with_reid:
-        #     self.encoder = FastReIDInterface(args.fast_reid_config, args.fast_reid_weights, args.device)
-
+        if self.real_data:
+            self.encoder = [
+                FastReIDInterface('./configs/reid/Market1501/mgn_R50-ibn.yml', './pretrained/market_mgn_R50-ibn.pth', 'cuda'), 
+                FastReIDInterface('./configs/reid/DukeMTMC/sbs_R101-ibn.yml', './pretrained/duke_sbs_R101-ibn.pth', 'cuda'), 
+                FastReIDInterface('./configs/reid/MSMT17/AGW_S50.yml', './pretrained/msmt_agw_S50.pth', 'cuda'), 
+            ]
+        else:
+            self.encoder = [
+                            FastReIDInterface('./configs/reid/Market1501/mgn_R50-ibn.yml', './pretrained/market_aic_bot_R50_1.pth', 'cuda')
+                        ]
         # self.gmc = GMC(method=args.cmc_method, verbose=[args.name, args.ablation])
 
-    def update(self, output_results, img, encoder, pose):  # encoder, pose 추가
+    def update(self, output_results, img, pose):  # encoder, pose 추가
         self.frame_id += 1
         activated_starcks = []
         refind_stracks = []
@@ -295,7 +308,8 @@ class BoTSORT(object):
             dets = bboxes[remain_inds]
             scores_keep = scores[remain_inds]
             classes_keep = classes[remain_inds]
-            pose_input = [{"bbox": det} for det in dets]
+            # pose_input = [{"bbox": det} for det in dets]
+            pose_input = dets
         else:
             bboxes = []
             scores = []
@@ -309,18 +323,10 @@ class BoTSORT(object):
             '''Detections'''
             if self.with_reid:
                 '''Extract embeddings '''
-                # features_keep = self.encoder.inference(img, dets)
-                # img = img_.copy()
-                # g = 2.0
-                # img = img.astype(np.float64)
-                # img = ((img / 255) ** (1 / g)) * 255
-                # img = img.astype(np.uint8)
-                pose_result, _ = inference_top_down_pose_model(pose, img, pose_input, format='xyxy')
-                ########################################## dets를 pose에서 나온 것으로 수정
-                features_keep = encoder.run(img, dets, self.max_batch_size)
-                # pose_result = list(map(lambda x: x['keypoints'], pose_result))
-                # pdb.set_trace()
-                detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s, f, p) for
+                ap = [encoder.inference(img, dets) for encoder in self.encoder]
+                features_keep = np.mean(ap, axis=0)
+                pose_result = inference_topdown(pose, img, pose_input, bbox_format='xyxy')
+                detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s, f, {'keypoints': np.concatenate([p.pred_instances.keypoints[0], np.expand_dims(p.pred_instances.keypoint_scores[0], axis=1)], axis=1)}) for
                               (tlbr, s, f, p) in zip(dets, scores_keep, features_keep, pose_result)]
             else:
                 detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s) for

@@ -1,4 +1,8 @@
 lap
 cython-bbox
+ultralytics
 mmpose
+fastreid
+opencv-python==4.5.5.64
+opencv-python-headless==4.5.5.64
 numpy==1.23.0
