@@ -265,7 +265,7 @@ class BoTSORT(object):
 
         self.id_assigner = ID_Assigner()
         # self.id_assigner = None
-
+        pdb.set_trace()
         if self.real_data:
             self.encoder = [
                 FastReIDInterface('./configs/reid/Market1501/mgn_R50-ibn.yml', './pretrained/market_mgn_R50-ibn.pth', 'cuda'), 
@@ -274,7 +274,7 @@ class BoTSORT(object):
             ]
         else:
             self.encoder = [
-                            FastReIDInterface('./configs/reid/Market1501/mgn_R50-ibn.yml', './pretrained/market_aic_bot_R50_1.pth', 'cuda')
+                            FastReIDInterface('./configs/reid/AIC/bagtricks_R50.yml', './pretrained/model_best.pth', 'cuda')
                         ]
         # self.gmc = GMC(method=args.cmc_method, verbose=[args.name, args.ablation])
 

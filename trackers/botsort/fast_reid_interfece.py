@@ -9,7 +9,7 @@ from fastreid.config import get_cfg
 from fastreid.modeling.meta_arch import build_model
 from fastreid.utils.checkpoint import Checkpointer
 from fastreid.engine import DefaultTrainer, default_argument_parser, default_setup, launch
-
+import pdb
 # cudnn.benchmark = True
 
 
@@ -74,7 +74,6 @@ class FastReIDInterface:
         self.pH, self.pW = self.cfg.INPUT.SIZE_TEST
 
     def inference(self, image, detections):
-
         if detections is None or np.size(detections) == 0:
             return []
 

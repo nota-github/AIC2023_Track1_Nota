@@ -575,4 +575,6 @@ def visualize_map(loc, img, cam_id, track_id, colors, len_feats, cur_frame):
     txt_size = cv2.getTextSize(text, font, 0.4*m, 1*m)[0]
     cv2.rectangle(img, (0, 0), (txt_size[0], int(1.5*txt_size[1])), (0,0,0), -1)
     cv2.putText(img, text, (0,txt_size[1]), font, 0.4*m, (255,255,255), thickness=1*m)
+
+    cv2.imwrite('/workspace/check.jpg', img)
     return img
