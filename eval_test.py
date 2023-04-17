@@ -21,13 +21,12 @@ import pdb
 def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids, scene):
     # assert len(sources) == len(result_paths[0]), 'length of sources and result_paths is different'
     # detection model initilaize
-    detection = YOLO('yolov8x6.pt')
+    detection = YOLO('./yolov8x6_aic.pt')
 
     # pose estimation initialize
     config_file = './configs/pose/body_2d_keypoint/topdown_heatmap/crowdpose/td-hm_hrnet-w32_8xb64-210e_crowdpose-256x192.py'
     checkpoint_file = 'https://download.openmmlab.com/mmpose/top_down/hrnet/hrnet_w32_crowdpose_256x192-960be101_20201227.pth'
     pose = init_model(config_file, checkpoint_file, device='cuda:0')
-    pdb.set_trace()
     # trackers initialize
     # trackers = [BoTSORT(track_buffer=args['track_buffer'], max_batch_size=args['max_batch_size']) for i in range(len(sources))]
     trackers = []
@@ -66,7 +65,11 @@ def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids
                 stop = True
                 break
             img = cv2.imread(img_paths.pop(0))
-            dets = detection(img, conf=conf_thres, iou=iou_thres, classes=0)[0].boxes.data[:, :5].cpu().numpy()  # run detection model 
+            g = 2.0
+            img = img.astype(np.float64)
+            img = ((img / 255) ** (1 / g)) * 255
+            img = img.astype(np.uint8)
+            dets = detection(img, conf=conf_thres, iou=iou_thres, classes=0)[0].boxes.data.cpu().numpy()  # run detection model 
             online_targets = tracker.update(dets, img, pose)  # run tracker
             perspective_transform.run(tracker)  # run perspective transform
 

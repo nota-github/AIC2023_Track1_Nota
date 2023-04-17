@@ -265,7 +265,6 @@ class BoTSORT(object):
 
         self.id_assigner = ID_Assigner()
         # self.id_assigner = None
-        pdb.set_trace()
         if self.real_data:
             self.encoder = [
                 FastReIDInterface('./configs/reid/Market1501/mgn_R50-ibn.yml', './pretrained/market_mgn_R50-ibn.pth', 'cuda'), 
@@ -273,9 +272,7 @@ class BoTSORT(object):
                 FastReIDInterface('./configs/reid/MSMT17/AGW_S50.yml', './pretrained/msmt_agw_S50.pth', 'cuda'), 
             ]
         else:
-            self.encoder = [
-                            FastReIDInterface('./configs/reid/AIC/bagtricks_R50.yml', './pretrained/model_best.pth', 'cuda')
-                        ]
+            self.encoder = [FastReIDInterface('./configs/reid/AIC/bagtricks_R50.yml', './pretrained/market_aic_bot_R50_1.pth', 'cuda')]
         # self.gmc = GMC(method=args.cmc_method, verbose=[args.name, args.ablation])
 
     def update(self, output_results, img, pose):  # encoder, pose 추가

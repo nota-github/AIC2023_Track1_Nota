@@ -74,8 +74,11 @@ def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids
                 imgs.append(np.zeros((1080, 1920, 3), np.uint8))
                 continue
             img = cv2.imread(img_paths.pop(0))
+            g = 2.0
+            img = img.astype(np.float64)
+            img = ((img / 255) ** (1 / g)) * 255
+            img = img.astype(np.uint8)
             dets = detection(img, conf=conf_thres, iou=iou_thres, classes=0)[0].boxes.data[:, :5].cpu().numpy()  # run detection model 
-            pdb.set_trace
             online_targets = tracker.update(dets, img, pose)  # run tracker
             perspective_transform.run(tracker)  # run perspective transform
 
