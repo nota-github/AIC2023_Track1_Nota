@@ -43,12 +43,6 @@ def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids
     # pose estimation initialize
     config_file = './configs/body/2d_kpt_sview_rgb_img/topdown_heatmap/crowdpose/hrnet_w32_crowdpose_256x192.py'
     checkpoint_file = 'https://download.openmmlab.com/mmpose/top_down/hrnet/hrnet_w32_crowdpose_256x192-960be101_20201227.pth'
-    # config_file = './configs/body/2d_kpt_sview_rgb_img/topdown_heatmap/coco/hrnet_w48_coco_256x192.py'
-    # checkpoint_file = 'https://download.openmmlab.com/mmpose/top_down/hrnet/hrnet_w48_coco_256x192-b9e0b3ab_20200708.pth'
-    # config_file = './configs/body/2d_kpt_sview_rgb_img/topdown_heatmap/posetrack18/hrnet_w48_posetrack18_256x192.py'
-    # checkpoint_file = 'https://download.openmmlab.com/mmpose/top_down/hrnet/hrnet_w48_posetrack18_384x288-5fd6d3ff_20211130.pth'
-    # config_file = './configs/body/2d_kpt_sview_rgb_img/topdown_heatmap/coco/hrformer_base_coco_384x288.py'
-    # checkpoint_file = 'https://download.openmmlab.com/mmpose/top_down/hrformer/hrformer_base_coco_384x288-ecf0758d_20220316.pth'
     pose = init_pose_model(config_file, checkpoint_file, device='cuda:0')
 
     # trackers initialize

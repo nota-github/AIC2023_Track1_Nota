@@ -1,0 +1,4 @@
+lap
+cython-bbox
+mmpose
+numpy==1.23.0
