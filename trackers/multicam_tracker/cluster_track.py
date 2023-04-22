@@ -105,7 +105,7 @@ class MTrack(BaseTrack):
 
 
 class MCTracker:
-    def __init__(self, appearance_thresh=0.8, euc_thresh=0.5, match_thresh=0.8, map_size=None, max_time_lost=18000, min_hits=75):
+    def __init__(self, appearance_thresh=0.8, euc_thresh=0.5, match_thresh=0.8, map_size=None, max_time_lost=18000, min_hits=90):
         self.tracked_mtracks = []  # type: list[MTrack]
         self.lost_mtracks = []  # type: list[MTrack]
         self.removed_mtracks = []  # type: list[MTrack]
