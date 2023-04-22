@@ -1,7 +1,7 @@
 _BASE_: ../Base-bagtricks.yml
 INPUT:
-  SIZE_TRAIN: [128, 256]
-  SIZE_TEST: [128, 256]
+  SIZE_TRAIN: [256, 128]
+  SIZE_TEST: [256, 128]
 DATASETS:
   NAMES: ("AIC",)
   TESTS: ("AIC",)

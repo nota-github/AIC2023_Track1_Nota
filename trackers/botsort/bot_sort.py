@@ -48,7 +48,7 @@ class STrack(BaseTrack):
         self.matched_dist = None
 
     def update_features(self, feat):
-        feat /= np.linalg.norm(feat)
+        # feat /= np.linalg.norm(feat)
         self.curr_feat = feat
         if self.smooth_feat is None:
             self.smooth_feat = feat

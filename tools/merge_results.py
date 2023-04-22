@@ -1,34 +1,38 @@
 import os
 
-dir_path = 'submission_results'
 
-output_file = 'track1.txt'
+dir_path = 'results'
+output_file = 'track1_submission.txt'
 output_path = os.path.join(dir_path, output_file)
 
-
-result_paths = {
-    'S001': './MOTFormat/multicam/preds/aicity/data/S001.txt',
-    'S003': './MOTFormat/multicam/preds/aicity/data/S003.txt',
-    'S009': './MOTFormat/multicam/preds/aicity/data/S009.txt',
-    'S014': './MOTFormat/multicam/preds/aicity/data/S014.txt',
-    'S018': './MOTFormat/multicam/preds/aicity/data/S018.txt',
-    'S021': './MOTFormat/multicam/preds/aicity/data/S021.txt',
-    'S022': './MOTFormat/multicam/preds/aicity/data/S022.txt',
-    }
-
-
-txt_files = [
-    result_paths['S001'],
-    result_paths['S003'],
-    result_paths['S009'],
-    result_paths['S014'],
-    result_paths['S018'],
-    result_paths['S021'],
-    result_paths['S022']
+result_paths = [
+    './results/S001.txt',
+    './results/S003.txt',
+    './results/S009.txt',
+    './results/S014.txt',
+    './results/S018.txt',
+    './results/S021.txt',
+    './results/S022.txt',
     ]
 
+global_id_dict = {}
+max_global_id = 1
+
 with open(output_path, "w") as outfile:
-    for txt_file in txt_files:
-        with open(txt_file, "r") as infile:
-            for line in infile:
-                outfile.write(line)
+    for result_path in result_paths:
+        with open(result_path, "r") as f:
+            lines = f.readlines()
+            lines = [line.replace('\n','').split(' ') for line in lines]
+        for line in lines:
+            global_id = line[1]
+            if global_id not in global_id_dict:
+                global_id_dict[global_id] = max_global_id
+                line[1] = max_global_id
+                max_global_id += 1
+            else:
+                line[1] = global_id_dict[global_id]
+
+            out_line = " ".join([str(l) for l in line]) + '\n'
+            outfile.write(out_line)
+        
+        global_id_dict = {}

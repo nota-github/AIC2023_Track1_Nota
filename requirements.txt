@@ -1,4 +1,5 @@
 lap
+Cython
 cython-bbox
 ultralytics
 mmpose

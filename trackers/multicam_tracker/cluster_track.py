@@ -7,7 +7,7 @@ from .basetrack import BaseTrack, TrackState
 
 
 class MTrack(BaseTrack):
-    def __init__(self, global_id, centroid, feat, pose, min_hits=30, feat_history=50):
+    def __init__(self, global_id, centroid, feat, pose, min_hits=30, scene=None, feat_history=50):
         self.is_activated = False
         self.centroid = centroid
         self.global_id = global_id
@@ -16,7 +16,12 @@ class MTrack(BaseTrack):
         self.curr_feat = None
         self.curr_pose = None
         # self.features = deque([], maxlen=feat_history)
-        self.features = deque([], maxlen=50)
+        if scene == 'S001':
+            self.features = deque([], maxlen=50)
+            self.pose_thresh = 14
+        else:
+            self.features = deque([], maxlen=25)
+            self.pose_thresh = 10
         if feat is not None:
             self.update_features(feat, pose)
         self.alpha = 0.9
@@ -35,7 +40,7 @@ class MTrack(BaseTrack):
             if pose is None: continue
             if len(self.features) == self.features.maxlen: return
             num_point = sum(pose['keypoints'][:, 2] > 0.5)
-            if num_point >= 10: self.features.append(feat)
+            if num_point >= self.pose_thresh: self.features.append(feat)
         
         # if len(self.features) == 0:
         #     self.features.extend(features)
@@ -100,7 +105,7 @@ class MTrack(BaseTrack):
 
 
 class MCTracker:
-    def __init__(self, appearance_thresh=0.8, euc_thresh=0.5, match_thresh=0.8, map_size=None, max_time_lost=1200, min_hits=360):
+    def __init__(self, appearance_thresh=0.8, euc_thresh=0.5, match_thresh=0.8, map_size=None, max_time_lost=18000, min_hits=75):
         self.tracked_mtracks = []  # type: list[MTrack]
         self.lost_mtracks = []  # type: list[MTrack]
         self.removed_mtracks = []  # type: list[MTrack]
@@ -120,7 +125,7 @@ class MCTracker:
             self.max_len = np.sqrt(map_size[0]**2 + map_size[1]**2)
             print('max_len: ', self.max_len)
     
-    def update(self, trackers, groups):
+    def update(self, trackers, groups, scene=None):
         self.frame_id += 1
         activated_mtracks = []
         refind_mtracks = []
@@ -129,7 +134,7 @@ class MCTracker:
 
         if len(groups):  # group type: array[[t_groud_id, features, centroid(location)], ...]
             global_ids = groups[:, 0]
-            print('input length of global_ids: ', len(global_ids))
+            # print('input length of global_ids: ', len(global_ids))
             features = groups[:, 1]
             centroids = groups[:, 2]
             poses = groups[:, 3]
@@ -139,7 +144,7 @@ class MCTracker:
             poses = []
         
         if len(centroids) > 0:
-            new_groups = [MTrack(g, c, f, p, self.min_hits) for (g, c, f, p) in zip(global_ids, centroids, features, poses)]
+            new_groups = [MTrack(g, c, f, p, self.min_hits, scene) for (g, c, f, p) in zip(global_ids, centroids, features, poses)]
         else:
             new_groups = []
 
@@ -160,15 +165,27 @@ class MCTracker:
         lengths_exists = [len(m.features) for m in tracked_mtracks]
         new_features = [feat for g in new_groups for feat in list(g.features)]
         lengths_new = [len(m.features) for m in new_groups]
-        print('exist: ', len(mtrack_pool))
-        print('new: ', len(new_groups))
+        # print('exist: ', len(mtrack_pool))
+        # print('new: ', len(new_groups))
         exist_centroids = [m.centroid for m in tracked_mtracks]
         new_centroids = [g.centroid for g in new_groups]
 
         shape = (len(lengths_exists), len(lengths_new))
         if 0 in shape:
             dists = np.empty(shape)
-
+        elif scene=='S001':
+            if self.frame_id % 5 == 0:
+                rerank_dists = matching.embedding_distance(exist_features, new_features) / 2.0
+                emb_dists = grouping_rerank(rerank_dists, lengths_exists, lengths_new, shape, normalize=False)
+                dists = emb_dists
+            else:
+                rerank_dists = matching.embedding_distance(exist_features, new_features) / 2.0
+                emb_dists = grouping_rerank(rerank_dists, lengths_exists, lengths_new, shape, normalize=False)
+                euc_dists = matching.euclidean_distance(exist_centroids, new_centroids) / self.max_len
+                norm_emb_dists = (emb_dists - np.min(emb_dists)) / (np.max(emb_dists) - np.min(emb_dists))
+                norm_euc_dists = (euc_dists - np.min(euc_dists)) / (np.max(euc_dists) - np.min(euc_dists))
+                dists = 0.5 * norm_euc_dists + 0.5 * norm_emb_dists
+                dists[euc_dists > 0.25] = 1.0
         else:
             # rerank_dists = re_ranking(np.array(new_features), np.array(exist_features), 20, 6, 0.3)
             # rerank_dists = rerank_dists.transpose()
@@ -176,13 +193,7 @@ class MCTracker:
             emb_dists = grouping_rerank(rerank_dists, lengths_exists, lengths_new, shape, normalize=False)
             euc_dists = matching.euclidean_distance(exist_centroids, new_centroids) / self.max_len
 
-            # norm_emb_dists = (emb_dists - np.min(emb_dists)) / (np.max(emb_dists) - np.min(emb_dists))
-            # norm_euc_dists = (euc_dists - np.min(euc_dists)) / (np.max(euc_dists) - np.min(euc_dists))
-            # dists = 0.5 * norm_euc_dists + 0.5 * norm_emb_dists
             dists = emb_dists
-            # dists[euc_dists > 0.3] = 1.0
-            # dists[euc_dists > 0.30] = 1.0
-            # dists[norm_emb_dists > 0.9] = 1.0
 
         # matches, u_exist, u_new = matching.linear_assignment(dists, thresh=self.match_thresh)
         matches, u_exist, u_new = matching.linear_assignment(dists, thresh=0.999)
@@ -201,7 +212,7 @@ class MCTracker:
         
         for it in u_exist:
             track = tracked_mtracks[it]
-            if not track.state == TrackState.Lost:
+            if not track.state == TrackState.Lost and (not track.state == TrackState.Removed):
                 track.mark_lost()
                 lost_mtracks.append(track)
 
@@ -234,7 +245,7 @@ class MCTracker:
             new = new_groups[inew]
             lost.re_activate(new, self.frame_id, new_id=False)
             refind_mtracks.append(lost)
-        print('refind_mtracks: ', [t.track_id for t in refind_mtracks])
+        # print('refind_mtracks: ', [t.track_id for t in refind_mtracks])
 
         ''' Step 4: Deal with unconfirmed tracks, usually tracks with only one beginning frame '''
         new_groups = [new_groups[i] for i in u_new]
@@ -254,6 +265,12 @@ class MCTracker:
         shape = (len(lengths_exists), len(lengths_new))
         if 0 in shape:
             dists = np.empty(shape)
+        elif scene=='S001':
+            rerank_dists = matching.embedding_distance(exist_features, new_features) / 2.0
+            emb_dists = grouping_rerank(rerank_dists, lengths_exists, lengths_new, shape, normalize=False)
+            euc_dists = matching.euclidean_distance(exist_centroids, new_centroids) / self.max_len
+            dists = emb_dists * euc_dists
+            dists[euc_dists > 0.2] = 1.0
         else:
             # rerank_dists = re_ranking(np.array(new_features), np.array(exist_features), 20, 6, 0.3)
             # rerank_dists = rerank_dists.transpose()
@@ -265,19 +282,9 @@ class MCTracker:
             dists = emb_dists
             dists[euc_dists > 0.1] = 1.0
 
-        # dists = 0.5 * euc_dists + 0.5 * emb_dists
-        # dists = euc_dists * emb_dists
-        # dists = emb_dists
-        # dists[euc_dists > 0.1] = 1.0
-        # print('dists: ', dists)
-
-        # dists[emb_dists > self.appearance_thresh] = 1.0  # drop above appearance thresh
-        # dists[euc_dists > self.euc_thresh] = 1.0  # drop above euclidean thresh
-        # dists[emb_dists > 0.8] = 1.0  # drop above appearance thresh
-        # dists[euc_dists > 0.5] = 1.0  # drop above euclidean thresh
-
-        matches, u_unconfirmed, u_new = matching.linear_assignment(dists, thresh=self.match_thresh)
-        print('u_exist, u_new: ', u_exist, u_new)
+        # matches, u_unconfirmed, u_new = matching.linear_assignment(dists, thresh=0.999 if scene=='S001' else self.match_thresh)
+        matches, u_unconfirmed, u_new = matching.linear_assignment(dists, thresh=0.999)
+        # print('u_exist, u_new: ', u_exist, u_new)
         for iexist, inew in matches:
             unconfirmed[iexist].update(new_groups[inew], self.frame_id)
             activated_mtracks.append(unconfirmed[iexist])
@@ -300,6 +307,12 @@ class MCTracker:
                 track.mark_removed()
                 removed_mtracks.append(track)
         
+        if scene=='S001' and self.frame_id == 7800:
+            self.max_time_lost = 40
+            self.min_hits = 3600
+        elif scene=='S001' and self.frame_id == 9000:
+            self.max_time_lost = 36000
+
         """ Merge """
         self.tracked_mtracks = [t for t in self.tracked_mtracks if t.state == TrackState.Tracked]
         self.tracked_mtracks = joint_mtracks(self.tracked_mtracks, activated_mtracks)
@@ -315,23 +328,6 @@ class MCTracker:
         print(f'tracking ids: {[m.track_id for m in output_mtracks]}')
         print(f'unconfirmed_tracks ids: {[m.track_id for m in unconfirmed_mtracks]}')
         print(f'lost_tracks ids: {[m.track_id for m in self.lost_mtracks]}')
-
-        """ Step Final: Assign real global id to trackers' tracks """
-        matched_global_ids = set()
-        for mtrack in output_mtracks:
-            for tracker in trackers:
-                for track in tracker.tracked_stracks:
-                    if track.t_global_id == mtrack.global_id:
-                        track.global_id = mtrack.track_id
-                        matched_global_ids.add(track.t_global_id)
-        
-        for mtrack in unconfirmed_mtracks:
-            for tracker in trackers:
-                for track in tracker.tracked_stracks:
-                    if track.t_global_id == mtrack.global_id:
-                        # track.global_id = mtrack.track_id  # txt에서 unconfirmed 포함
-                        track.global_id = -2   # txt에서 unconfirmed 제외
-                        matched_global_ids.add(track.t_global_id)
 
 
 def re_ranking(probFea,galFea,k1,k2,lambda_value, MemorySave = False, Minibatch = 2000):
@@ -361,7 +357,6 @@ def re_ranking(probFea,galFea,k1,k2,lambda_value, MemorySave = False, Minibatch 
     V = np.zeros_like(original_dist).astype(np.float16)
     initial_rank = np.argsort(original_dist).astype(np.int32)
 
-    
     # print('starting re_ranking')
     for i in range(all_num):
         # k-reciprocal neighbors

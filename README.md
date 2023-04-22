@@ -5,11 +5,10 @@ The official resitory for 7th NVIDIA AI City Challenge (Track1: Multi-Camera Peo
 - option 1: Install dependencies in your environment
 
 ```bash 
-bassh setup.sh
-pip install -r requirements.txt
+bash ./setup.sh
 ```
 
-- option 2: Using our docker image
+- option 2: Use our docker image
 ```bash
 docker build -t aic2023_track1/nota:latest -f ./Dockerfile .
 docker run -it --gpus all -v /path/to/AIC2023_Track1_Nota:/workspace/AIC2023_Track1_Nota aic2023_track1/nota:latest /bin/bash
@@ -19,7 +18,7 @@ docker run -it --gpus all -v /path/to/AIC2023_Track1_Nota:/workspace/AIC2023_Tra
 1. Download the dataset and extract frames  
 ```bash
 # extract frames
-python3 extract_frames.py
+python3 tools/extract_frames.py --path /path/to/AIC23_Track1_MTMC_Tracking/
 ```
 
 2. Download the pre-trained models ([Google Drive](https://drive.google.com/drive/folders/1_VichQvhbmfuD4h8x4-e7Rwc560TzWqH?usp=share_link))  
