@@ -10,8 +10,8 @@ bash ./setup.sh
 
 - option 2: Use our docker image
 ```bash
-docker build -t aic2023_track1/nota:latest -f ./Dockerfile .
-docker run -it --gpus all -v /path/to/AIC2023_Track1_Nota:/workspace/AIC2023_Track1_Nota aic2023_track1/nota:latest /bin/bash
+docker build -t aic2023/track1_nota:latest -f ./Dockerfile .
+docker run -it --gpus all -v /path/to/AIC2023_Track1_Nota:/workspace/AIC2023_Track1_Nota aic2023/track1_nota:latest /bin/bash
 ```
 
 ## Data & Model Preparation
