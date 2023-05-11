@@ -42,7 +42,7 @@ def run(args, conf_thres, iou_thres, sources, result_paths, perspective, cam_ids
     # id_distributor and multi-camera tracker initialize
     clustering = Clustering(appearance_thresh=args['clt_appearance_thresh'], euc_thresh=args['clt_euclidean_thresh'],
                             match_thresh=0.8, map_size=map_infos[perspective]['size'])
-    mc_tracker = MCTracker(appearance_thresh=args['mct_appearance_thresh'], match_thresh=0.8, map_size=map_infos[perspective]['size'], min_hits=30)
+    mc_tracker = MCTracker(appearance_thresh=args['mct_appearance_thresh'], match_thresh=0.8, map_size=map_infos[perspective]['size'], min_hits=45)
     id_distributor = ID_Distributor()
 
     # get source imgs, video writers
