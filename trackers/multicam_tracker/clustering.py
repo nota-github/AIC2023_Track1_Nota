@@ -220,8 +220,7 @@ class Clustering:
                             dists[i][j] += 0.5 * norm_euc_dists[i][j] + 0.5 * norm_emb_dists[i][j]
 
                         if ratio >= 0.3:
-#                             if emb_dists[i][j] > 0.030:
-                            if emb_dists[i][j] > 0.135:
+                            if emb_dists[i][j] > 0.13:
                                 dists[i][j] = 1
                         # dists[i][j] += 0.5 * norm_euc_dists[i][j] + 0.5 * norm_emb_dists[i][j]
             
