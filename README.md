@@ -61,7 +61,7 @@ The result files will be saved as follows:
 
 ## Citation
 ```
-@InProceedings{Le_2023_CVPR,
+@InProceedings{Kim_2023_CVPR,
     author    = {Jeongho Kim, Wooksu Shin, Hancheol Park and Jongwon Baek},
     title     = {Addressing the Occlusion Problem in Multi-Camera People Tracking with Human Pose Estimation},
     booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops},
