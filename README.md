@@ -70,3 +70,12 @@ The result files will be saved as follows:
     year      = {2023},
 }
 ```
+
+# Terms of use
+The multi-camera people tracking system published in this repository was developed by combining several modules (e.g., object detector, re-identification model, multi-object tracking model). Commercial use of any modifications, additions, or newly trained parameters made to combine these modules is not allowed. However, commercial use of the unmodified modules is allowed under their respective licenses. If you wish to use the individual modules commercially, you may refer to their original repositories and licenses provided below.
+
+Object detector (license) link : [Github](https://github.com/ultralytics/ultralytics), [License](https://github.com/ultralytics/ultralytics?tab=AGPL-3.0-1-ov-file#readme)
+
+Re-identification model (license) link : [Github](https://github.com/JDAI-CV/fast-reid), [License](https://github.com/JDAI-CV/fast-reid?tab=Apache-2.0-1-ov-file#readme)
+
+Multi-object tracking model (license) link : [Github](https://github.com/NirAharon/BoT-SORT), [License](https://github.com/NirAharon/BoT-SORT?tab=MIT-1-ov-file#readme)
